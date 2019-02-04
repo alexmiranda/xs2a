@@ -68,6 +68,10 @@ public class CreateCommonPaymentService implements CreatePaymentService<CommonPa
         PsuIdData psuData = paymentInitiationParameters.getPsuData();
         PaymentInitiationResponse response = scaPaymentService.createCommonPayment(payment, tppInfo, paymentInitiationParameters.getPaymentProduct(), psuData);
 
+        if (response.hasError()) {
+            return buildErrorResponse(response.getErrorHolder());
+        }
+
         PisPaymentInfo pisPaymentInfo = xs2aToCmsPisCommonPaymentRequestMapper.mapToPisPaymentInfo(paymentInitiationParameters, tppInfo, response, payment.getPaymentData());
         Xs2aPisCommonPayment pisCommonPayment = xs2aPisCommonPaymentMapper.mapToXs2aPisCommonPayment(pisCommonPaymentService.createCommonPayment(pisPaymentInfo), psuData);
 
