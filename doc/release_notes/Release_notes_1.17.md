@@ -13,3 +13,6 @@ PsuIdData was also removed as an argument from `de.adorsys.psd2.consent.psu.api.
 
 ## Delete old 'tpp demo' 
 Deleted extra functional in 'tpp-demo' package
+
+## Bugfix: Error messages from spi-api should be returned to the tpp in response
+Now messages which provided in spi-api in case of the error return to the tpp in response
