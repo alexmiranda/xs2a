@@ -44,6 +44,7 @@ public class ReadPeriodicPaymentStatusService implements ReadPaymentStatusServic
                    .map(spiPeriodicPayment -> periodicPaymentSpi.getPaymentStatusById(spiContextData, spiPeriodicPayment, aspspConsentData))
                    .orElseGet(() -> SpiResponse.<TransactionStatus>builder()
                                         .message("Payment not found")
+                                        .aspspConsentData(aspspConsentData)
                                         .fail(SpiResponseStatus.LOGICAL_FAILURE));
     }
 }
