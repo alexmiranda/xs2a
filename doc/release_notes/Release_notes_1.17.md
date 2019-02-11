@@ -41,3 +41,6 @@ one can export AIS Consents that contain certain account id. Method `exportConse
 ## Implemented java interface and endpoint to save Account Access object in Consent by Online banking
 Now by accessing `/psu-api/v1/ais/consent/{consent-id}/save-access` endpoint(or corresponding method in `CmsPsuAisService.java`)
 online banking can update AccountAccess (along with `aspspAccountId` and `resourceId` if necessary), frequency per day and expiration date in consent.
+
+## Bugfix: fix instanceId not being set in the CMS that doesn't have any pre-insert listeners
+From now on `instanceId` property will be correctly set to its default value(`UNDEFINED`) when the CMS doesn't have any pre-insert listeners to override this property. 

@@ -26,7 +26,8 @@ import javax.persistence.MappedSuperclass;
 @Setter
 @MappedSuperclass
 public abstract class InstanceDependableEntity {
+    private static final String DEFAULT_SERVICE_INSTANCE_ID = "UNDEFINED";
 
     @Column(name = "instance_id", nullable = false, updatable = false)
-    private String instanceId;
+    private String instanceId = DEFAULT_SERVICE_INSTANCE_ID;
 }
