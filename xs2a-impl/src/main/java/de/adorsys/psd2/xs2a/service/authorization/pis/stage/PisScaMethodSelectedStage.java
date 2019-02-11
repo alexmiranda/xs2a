@@ -36,6 +36,7 @@ import de.adorsys.psd2.xs2a.spi.domain.payment.response.SpiPaymentExecutionRespo
 import de.adorsys.psd2.xs2a.spi.domain.response.SpiResponse;
 import de.adorsys.psd2.xs2a.spi.service.PaymentSpi;
 import de.adorsys.psd2.xs2a.spi.service.SpiPayment;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import static de.adorsys.psd2.xs2a.core.sca.ScaStatus.FINALISED;
@@ -49,8 +50,8 @@ public class PisScaMethodSelectedStage extends PisScaStage<Xs2aUpdatePisCommonPa
     private final SpiToXs2aTransactionalStatusMapper spiToXs2aTransactionalStatusMapper;
     private final SpiContextDataProvider spiContextDataProvider;
 
-    public PisScaMethodSelectedStage(PisAspspDataService pisAspspDataService, Xs2aUpdatePaymentStatusAfterSpiService updatePaymentStatusAfterSpiService, CmsToXs2aPaymentMapper cmsToXs2aPaymentMapper, Xs2aToSpiPeriodicPaymentMapper xs2aToSpiPeriodicPaymentMapper, Xs2aToSpiSinglePaymentMapper xs2aToSpiSinglePaymentMapper, Xs2aToSpiBulkPaymentMapper xs2aToSpiBulkPaymentMapper, Xs2aPisCommonPaymentMapper xs2aPisCommonPaymentMapper, SpiErrorMapper spiErrorMapper, SpiToXs2aTransactionalStatusMapper spiToXs2aTransactionalStatusMapper, SpiContextDataProvider spiContextDataProvider) {
-        super(cmsToXs2aPaymentMapper, xs2aToSpiPeriodicPaymentMapper, xs2aToSpiSinglePaymentMapper, xs2aToSpiBulkPaymentMapper);
+    public PisScaMethodSelectedStage(PisAspspDataService pisAspspDataService, Xs2aUpdatePaymentStatusAfterSpiService updatePaymentStatusAfterSpiService, CmsToXs2aPaymentMapper cmsToXs2aPaymentMapper, Xs2aToSpiPeriodicPaymentMapper xs2aToSpiPeriodicPaymentMapper, Xs2aToSpiSinglePaymentMapper xs2aToSpiSinglePaymentMapper, Xs2aToSpiBulkPaymentMapper xs2aToSpiBulkPaymentMapper, Xs2aPisCommonPaymentMapper xs2aPisCommonPaymentMapper, SpiErrorMapper spiErrorMapper, SpiToXs2aTransactionalStatusMapper spiToXs2aTransactionalStatusMapper, SpiContextDataProvider spiContextDataProvider, ApplicationContext applicationContext) {
+        super(cmsToXs2aPaymentMapper, xs2aToSpiPeriodicPaymentMapper, xs2aToSpiSinglePaymentMapper, xs2aToSpiBulkPaymentMapper,applicationContext);
         this.spiErrorMapper = spiErrorMapper;
         this.pisAspspDataService = pisAspspDataService;
         this.updatePaymentStatusAfterSpiService = updatePaymentStatusAfterSpiService;

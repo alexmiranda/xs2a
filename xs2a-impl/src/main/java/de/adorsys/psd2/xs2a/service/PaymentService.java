@@ -38,16 +38,12 @@ import de.adorsys.psd2.xs2a.service.consent.Xs2aPisCommonPaymentService;
 import de.adorsys.psd2.xs2a.service.context.SpiContextDataProvider;
 import de.adorsys.psd2.xs2a.service.event.Xs2aEventService;
 import de.adorsys.psd2.xs2a.service.mapper.consent.CmsToXs2aPaymentMapper;
-import de.adorsys.psd2.xs2a.service.mapper.psd2.ServiceType;
 import de.adorsys.psd2.xs2a.service.mapper.spi_xs2a_mappers.SpiErrorMapper;
 import de.adorsys.psd2.xs2a.service.mapper.spi_xs2a_mappers.SpiToXs2aTransactionalStatusMapper;
 import de.adorsys.psd2.xs2a.service.mapper.spi_xs2a_mappers.Xs2aToSpiPaymentInfoMapper;
 import de.adorsys.psd2.xs2a.service.payment.*;
 import de.adorsys.psd2.xs2a.service.profile.AspspProfileServiceWrapper;
 import de.adorsys.psd2.xs2a.spi.domain.SpiContextData;
-import de.adorsys.psd2.xs2a.spi.domain.common.SpiTransactionStatus;
-import de.adorsys.psd2.xs2a.spi.domain.payment.SpiPaymentInfo;
-import de.adorsys.psd2.xs2a.spi.domain.response.SpiResponse;
 import de.adorsys.psd2.xs2a.spi.service.CommonPaymentSpi;
 import de.adorsys.psd2.xs2a.spi.service.SpiPayment;
 import lombok.AllArgsConstructor;
@@ -91,6 +87,8 @@ public class PaymentService {
     private final Xs2aToSpiPaymentInfoMapper xs2aToSpiPaymentInfoMapper;
     private final CmsToXs2aPaymentMapper cmsToXs2aPaymentMapper;
     private final SpiContextDataProvider spiContextDataProvider;
+    private final ReadCommonPaymentStatusService readCommonPaymentStatusService;
+
 
     /**
      * Initiates a payment though "payment service" corresponding service method
@@ -204,13 +202,12 @@ public class PaymentService {
         AspspConsentData aspspConsentData = pisAspspDataService.getAspspConsentData(paymentId);
         List<PsuIdData> psuData = pisPsuDataService.getPsuDataByPaymentId(paymentId);
         SpiContextData spiContextData = spiContextDataProvider.provideWithPsuIdData(readPsuIdDataFromList(psuData));
-        SpiResponse<SpiTransactionStatus> spiResponse;
+
+        ReadPaymentStatusResponse readPaymentStatusResponse;
 
         // TODO should be refactored https://git.adorsys.de/adorsys/xs2a/aspsp-xs2a/issues/533
         if (pisCommonPaymentResponse.getPaymentData() != null) {
-            CommonPayment commonPayment = cmsToXs2aPaymentMapper.mapToXs2aCommonPayment(pisCommonPaymentResponse);
-            SpiPaymentInfo request = xs2aToSpiPaymentInfoMapper.mapToSpiPaymentInfo(commonPayment);
-            spiResponse = commonPaymentSpi.getPaymentStatusById(spiContextData, request, aspspConsentData);
+            readPaymentStatusResponse =readCommonPaymentStatusService.readPaymentStatus(pisCommonPaymentResponse, spiContextData, aspspConsentData);
         } else {
             List<PisPayment> pisPayments = getPisPaymentFromCommonPaymentResponse(pisCommonPaymentResponse);
             if (CollectionUtils.isEmpty(pisPayments)) {
@@ -220,19 +217,17 @@ public class PaymentService {
             }
 
             ReadPaymentStatusService readPaymentStatusService = readPaymentStatusFactory.getService(ReadPaymentStatusFactory.SERVICE_PREFIX + paymentType.getValue());
-            spiResponse = readPaymentStatusService.readPaymentStatus(pisPayments, pisCommonPaymentResponse.getPaymentProduct(), spiContextData, aspspConsentData);
+            readPaymentStatusResponse = readPaymentStatusService.readPaymentStatus(pisPayments, pisCommonPaymentResponse.getPaymentProduct(), spiContextData, aspspConsentData);
         }
 
-        pisAspspDataService.updateAspspConsentData(spiResponse.getAspspConsentData());
-
-        if (spiResponse.hasError()) {
-            ErrorHolder errorHolder = spiErrorMapper.mapToErrorHolder(spiResponse, ServiceType.PIS);
+        if (readPaymentStatusResponse.hasError()) {
+            ErrorHolder errorHolder = readPaymentStatusResponse.getErrorHolder();
             return ResponseObject.<TransactionStatus>builder()
                        .fail(new MessageError(errorHolder))
                        .build();
         }
 
-        TransactionStatus transactionStatus = spiToXs2aTransactionalStatus.mapToTransactionStatus(spiResponse.getPayload());
+        TransactionStatus transactionStatus = readPaymentStatusResponse.getStatus();
 
         if (transactionStatus == null) {
             return ResponseObject.<TransactionStatus>builder()

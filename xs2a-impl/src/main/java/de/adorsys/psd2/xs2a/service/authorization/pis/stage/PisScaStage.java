@@ -31,7 +31,6 @@ import de.adorsys.psd2.xs2a.spi.domain.payment.SpiPaymentInfo;
 import de.adorsys.psd2.xs2a.spi.service.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import java.util.List;
@@ -43,9 +42,7 @@ public abstract class PisScaStage<T, U, R> implements BiFunction<T, U, R> {
     private final Xs2aToSpiPeriodicPaymentMapper xs2aToSpiPeriodicPaymentMapper;
     private final Xs2aToSpiSinglePaymentMapper xs2aToSpiSinglePaymentMapper;
     private final Xs2aToSpiBulkPaymentMapper xs2aToSpiBulkPaymentMapper;
-
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
 
     protected PaymentSpi getPaymentService(GetPisAuthorisationResponse pisAuthorisationResponse, PaymentType paymentType) {
         // todo implementation should be changed https://git.adorsys.de/adorsys/xs2a/aspsp-xs2a/issues/534

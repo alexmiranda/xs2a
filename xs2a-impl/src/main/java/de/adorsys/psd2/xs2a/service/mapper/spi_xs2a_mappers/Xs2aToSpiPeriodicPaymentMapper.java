@@ -49,6 +49,7 @@ public class Xs2aToSpiPeriodicPaymentMapper {
         if (payment.getTransactionStatus() != null) {
             periodic.setPaymentStatus(SpiTransactionStatus.valueOf(payment.getTransactionStatus().name()));
         }
+        // TODO delete SpiFrequencyCode and remake mapping https://git.adorsys.de/adorsys/xs2a/aspsp-xs2a/issues/668
         periodic.setFrequency(Optional.ofNullable(payment.getFrequency())
                                   .map(fr -> SpiFrequencyCode.valueOf(fr.name()))
                                   .orElse(null));

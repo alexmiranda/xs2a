@@ -18,32 +18,53 @@ package de.adorsys.psd2.xs2a.service.payment;
 
 import de.adorsys.psd2.consent.api.pis.PisPayment;
 import de.adorsys.psd2.xs2a.core.consent.AspspConsentData;
+import de.adorsys.psd2.xs2a.domain.ErrorHolder;
+import de.adorsys.psd2.xs2a.domain.MessageErrorCode;
+import de.adorsys.psd2.xs2a.domain.pis.ReadPaymentStatusResponse;
+import de.adorsys.psd2.xs2a.service.consent.PisAspspDataService;
+import de.adorsys.psd2.xs2a.service.mapper.psd2.ServiceType;
+import de.adorsys.psd2.xs2a.service.mapper.spi_xs2a_mappers.SpiErrorMapper;
+import de.adorsys.psd2.xs2a.service.mapper.spi_xs2a_mappers.SpiToXs2aTransactionalStatusMapper;
 import de.adorsys.psd2.xs2a.spi.domain.SpiContextData;
 import de.adorsys.psd2.xs2a.spi.domain.common.SpiTransactionStatus;
 import de.adorsys.psd2.xs2a.spi.domain.payment.SpiSinglePayment;
 import de.adorsys.psd2.xs2a.spi.domain.response.SpiResponse;
-import de.adorsys.psd2.xs2a.spi.domain.response.SpiResponseStatus;
 import de.adorsys.psd2.xs2a.spi.service.SinglePaymentSpi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @Service("status-payments")
 @RequiredArgsConstructor
 public class ReadSinglePaymentStatusService implements ReadPaymentStatusService {
+    private final PisAspspDataService pisAspspDataService;
     private final SpiPaymentFactory spiPaymentFactory;
     private final SinglePaymentSpi singlePaymentSpi;
+    private final SpiErrorMapper spiErrorMapper;
+    private final SpiToXs2aTransactionalStatusMapper transactionalStatusMapper;
 
     @Override
-    public SpiResponse<SpiTransactionStatus> readPaymentStatus(List<PisPayment> pisPayments, String paymentProduct, SpiContextData spiContextData, AspspConsentData aspspConsentData) {
+    public ReadPaymentStatusResponse readPaymentStatus(List<PisPayment> pisPayments, String paymentProduct, SpiContextData spiContextData, AspspConsentData aspspConsentData) {
         Optional<SpiSinglePayment> spiSinglePaymentOptional = spiPaymentFactory.createSpiSinglePayment(pisPayments.get(0), paymentProduct);
 
-        return spiSinglePaymentOptional
-                   .map(spiSinglePayment -> singlePaymentSpi.getPaymentStatusById(spiContextData, spiSinglePayment, aspspConsentData))
-                   .orElseGet(() -> SpiResponse.<SpiTransactionStatus>builder()
-                                        .message("Payment not found")
-                                        .fail(SpiResponseStatus.LOGICAL_FAILURE));
+        if (!spiSinglePaymentOptional.isPresent()) {
+            return new ReadPaymentStatusResponse(
+                ErrorHolder.builder(MessageErrorCode.RESOURCE_UNKNOWN_404)
+                    .messages(Collections.singletonList("Payment not found"))
+                    .build()
+            );
+        }
+
+        SpiResponse<SpiTransactionStatus> spiResponse = singlePaymentSpi.getPaymentStatusById(spiContextData, spiSinglePaymentOptional.get(), aspspConsentData);
+        pisAspspDataService.updateAspspConsentData(spiResponse.getAspspConsentData());
+
+        if (spiResponse.hasError()) {
+            return new ReadPaymentStatusResponse(spiErrorMapper.mapToErrorHolder(spiResponse, ServiceType.PIS));
+        }
+
+        return new ReadPaymentStatusResponse(transactionalStatusMapper.mapToTransactionStatus(spiResponse.getPayload()));
     }
 }
