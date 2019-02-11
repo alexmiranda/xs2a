@@ -199,7 +199,7 @@ public class PisScaStartAuthorisationStageTest {
 
 
     @Test
-    public void apply_paymentAuthorisationSpi_executePaymentWithoutSca_fail() {
+    public void apply_singlePaymentSpi_executePaymentWithoutSca_fail() {
         String errorMessagesString = ERROR_MESSAGE_TEXT.toString().replace("[", "").replace("]", "");
         SpiResponse<SpiAuthorisationStatus> spiStatus = SpiResponse.<SpiAuthorisationStatus>builder()
                                                             .payload(SpiAuthorisationStatus.SUCCESS)
