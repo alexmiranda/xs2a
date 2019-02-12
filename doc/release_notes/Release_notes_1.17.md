@@ -76,3 +76,11 @@ By default `spring-boot-1.5.x-support` is used.
 Previously in xs2a responses we had two blocks of links with the same content, but different namings (`links` and `_links`).
 Now xs2a interface provides only one block of links.
 
+## Bugfix: Incorrect behaviour when entering wrong payment service or payment product for Get payment status request, Get payment information request and Cancel payment
+
+When using GET `/v1/{payment-service}/{payment-product}/{paymentId}/status`, GET `/v1/{payment-service}/{payment-product}/{paymentId}` or DELETE `/v1/{payment-service}/{payment-product}/{paymentId}/` 
+with incorrect payment service(e.g `periodic-payments` instead of `payments` with payment id of single payment, not periodic, or `instant-sepa-credit-transfers` instead of `sepa-credit-transfers`),
+there were no correct errors provided (`405 SERVICE_INVALID` for incorrect payment service and `403 PRODUCT_INVALID` for incorrect payment product).
+
+Now when you enter incorrect payment service, the request will not be executed and the error `405 SERVICE_INVALID` will be returned.
+If you enter incorrect payment product, the request also will not be executed and the error `403 PRODUCT_INVALID` will be returned.

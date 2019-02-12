@@ -98,9 +98,9 @@ public class PaymentControllerTest {
 
     @Before
     public void setUp() {
-        when(xs2aPaymentService.getPaymentById(eq(SINGLE), eq(CORRECT_PAYMENT_ID)))
+        when(xs2aPaymentService.getPaymentById(eq(SINGLE), eq(PRODUCT), eq(CORRECT_PAYMENT_ID)))
             .thenReturn(ResponseObject.builder().body(getXs2aPayment()).build());
-        when(xs2aPaymentService.getPaymentById(eq(SINGLE), eq(WRONG_PAYMENT_ID)))
+        when(xs2aPaymentService.getPaymentById(eq(SINGLE), eq(PRODUCT),eq(WRONG_PAYMENT_ID)))
             .thenReturn(ResponseObject.builder().fail(new MessageError(ErrorType.PIS_403,
                                                                        new TppMessageInformation(ERROR, RESOURCE_UNKNOWN_403))).build());
         when(aspspProfileService.getPisRedirectUrlToAspsp())
@@ -111,9 +111,9 @@ public class PaymentControllerTest {
 
     @Before
     public void setUpPaymentServiceMock() {
-        when(xs2aPaymentService.getPaymentStatusById(eq(PaymentType.SINGLE), eq(CORRECT_PAYMENT_ID)))
+        when(xs2aPaymentService.getPaymentStatusById(eq(PaymentType.SINGLE), eq(PRODUCT),eq(CORRECT_PAYMENT_ID)))
             .thenReturn(ResponseObject.<TransactionStatus>builder().body(TransactionStatus.ACCP).build());
-        when(xs2aPaymentService.getPaymentStatusById(eq(PaymentType.SINGLE), eq(WRONG_PAYMENT_ID)))
+        when(xs2aPaymentService.getPaymentStatusById(eq(PaymentType.SINGLE),eq(PRODUCT), eq(WRONG_PAYMENT_ID)))
             .thenReturn(ResponseObject.<TransactionStatus>builder().fail(new MessageError(ErrorType.PIS_403,
                                                                                           new TppMessageInformation(ERROR, RESOURCE_UNKNOWN_403))).build());
     }
@@ -167,7 +167,7 @@ public class PaymentControllerTest {
     public void getTransactionStatusById_Success() {
         doReturn(new ResponseEntity<>(getPaymentInitiationStatus(de.adorsys.psd2.model.TransactionStatus.ACCP), HttpStatus.OK))
             .when(responseMapper).ok(any(), any());
-        when(xs2aPaymentService.getPaymentStatusById(SINGLE, CORRECT_PAYMENT_ID)).thenReturn(ResponseObject.<TransactionStatus>builder().body(TransactionStatus.ACCP).build());
+        when(xs2aPaymentService.getPaymentStatusById(SINGLE, PRODUCT, CORRECT_PAYMENT_ID)).thenReturn(ResponseObject.<TransactionStatus>builder().body(TransactionStatus.ACCP).build());
 
         //Given:
         PaymentInitiationStatusResponse200Json expectedBody = getPaymentInitiationStatus(de.adorsys.psd2.model.TransactionStatus.ACCP);
@@ -198,7 +198,7 @@ public class PaymentControllerTest {
         doReturn(new ResponseEntity<>(new MessageError(ErrorType.PIS_403,
                                                        new TppMessageInformation(ERROR, RESOURCE_UNKNOWN_403)), FORBIDDEN)).when(responseMapper).ok(any(), any());
         when(responseErrorMapper.generateErrorResponse(createMessageError(ErrorType.PIS_403, RESOURCE_UNKNOWN_403))).thenReturn(ResponseEntity.status(FORBIDDEN).build());
-        when(xs2aPaymentService.getPaymentStatusById(SINGLE, WRONG_PAYMENT_ID)).thenReturn(ResponseObject.<TransactionStatus>builder().fail(createMessageError(ErrorType.PIS_403, RESOURCE_UNKNOWN_403)).build());
+        when(xs2aPaymentService.getPaymentStatusById(SINGLE, PRODUCT, WRONG_PAYMENT_ID)).thenReturn(ResponseObject.<TransactionStatus>builder().fail(createMessageError(ErrorType.PIS_403, RESOURCE_UNKNOWN_403)).build());
         //Given:
         HttpStatus expectedHttpStatus = FORBIDDEN;
 
